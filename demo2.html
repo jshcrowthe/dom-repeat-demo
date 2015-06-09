@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>dom-repeat Demo</title>
+  <script>
+    if ('registerElement' in document
+      && 'createShadowRoot' in HTMLElement.prototype
+      && 'import' in document.createElement('link')
+      && 'content' in document.createElement('template')) {
+      console.log("Using WC Enabled Browser");
+    } else {
+      document.write("<script src='bower_components/webcomponentsjs/webcomponents-lite.min.js'><\/script>");
+    }
+  </script>
+  <script src="lib/faker.min.js"></script>
+  <link rel="import" href="bower_components/layout/layout.html">
+  <link rel="import" href="bower_components/polymer/polymer.html">
+  <link rel="import" href="bower_components/iron-image/iron-image.html">
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    h1 {
+      margin:0;
+    }
+    h2 {
+      margin:0;
+    }
+    .thumbnail {
+      height: 80px;
+      width: 80px;
+      margin:0 20px 0 0;
+      border-radius: 50%;
+    }
+    .card {
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #DDDDDD;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .align-right {
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <h1>Contact List</h1>
+    </div>
+    <div class="row">
+      <template id="demo" is="dom-bind">
+        <p>
+          <label>Filter:</label>
+          <input type="text" value="{{filterVal::input}}">
+        </p>
+        <p>
+          <label>Sort:</label>
+          <select value="{{sortVal::change}}">
+            <option value="name">Name</option>
+            <option value="email">Email</option>
+            <option value="email_provider">Email Provider</option>
+          </select>
+        </p>
+        <template is="dom-repeat" items="{{list}}" as="card" filter="{{_filter(filterVal)}}" sort="{{_sort(sortVal)}}">
+          <div class="card layout horizontal justified">
+            <div class="layout horizontal center">
+            <iron-image class="thumbnail" src="{{card.image}}" sizing="cover" preload fade></iron-image>
+              <h2>{{card.name}}</h2>
+            </div>
+            <div class="align-right">
+              <h3>{{card.email}}</h3>
+              <h3>{{card.phone}}</h3>
+            </div>
+          </div>
+        </template>
+      </template>
+    </div>
+  </div>
+  <script>
+    var list = [];
+    for (var i = 0; i < 50; i++) {
+      var person = faker.helpers.createCard();
+      person.image = faker.image.avatar() + '?i=' + i;
+      list.push(person);
+    }
+
+    var el = document.querySelector('#demo');
+    
+    el.list = list;
+
+    el._filter = function(val) {
+      return function(person) {
+        if (!val) return true;
+        if (!person) return false;
+        return (person.name  && ~person.name.toLowerCase().indexOf(val.toLowerCase()))  ||
+               (person.email && ~person.email.toLowerCase().indexOf(val.toLowerCase())) ||
+               (person.phone && ~person.phone.toLowerCase().indexOf(val.toLowerCase()));
+      };
+    };
+
+    el._sort = function(val) {
+      switch(val) {
+        case 'name':
+          return function(a, b) {
+            if (a.name.toLowerCase() === b.name.toLowerCase()) return 0;
+            return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1;
+          };
+        case 'email':
+          return function(a, b) {
+            if (a.email.toLowerCase() === b.email.toLowerCase()) return 0;
+            return a.email.toLowerCase() < b.email.toLowerCase() ? -1 : 1;
+          };
+        case 'email_provider':
+          var regex = /@(.*)/;
+          return function(a, b) {
+            var a_provider = a.email.match(regex)[1];
+            var b_provider = b.email.match(regex)[1];
+            if (a_provider == b_provider) {
+              if (a.email.toLowerCase() === b.email.toLowerCase()) return 0;
+              return a.email.toLowerCase() < b.email.toLowerCase() ? -1 : 1;
+            }
+            return a_provider < b_provider ? -1 : 1;
+          };
+      }
+    };
+  </script>
+</body>
+</html>

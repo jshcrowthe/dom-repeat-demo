@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>dom-repeat Demo</title>
+  <script>
+    if ('registerElement' in document
+      && 'createShadowRoot' in HTMLElement.prototype
+      && 'import' in document.createElement('link')
+      && 'content' in document.createElement('template')) {
+      console.log("Using WC Enabled Browser");
+    } else {
+      document.write("<script src='bower_components/webcomponentsjs/webcomponents-lite.min.js'><\/script>");
+    }
+  </script>
+  <script src="lib/faker.min.js"></script>
+  <link rel="import" href="bower_components/layout/layout.html">
+  <link rel="import" href="bower_components/polymer/polymer.html">
+  <link rel="import" href="bower_components/iron-image/iron-image.html">
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    h1 {
+      margin:0;
+    }
+    h2 {
+      margin:0;
+    }
+    .thumbnail {
+      height: 80px;
+      width: 80px;
+      margin:0 20px 0 0;
+      border-radius: 50%;
+    }
+    .card {
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #DDDDDD;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .align-right {
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <h1>Doctor List</h1>
+    </div>
+    <div class="row">
+      <template id="demo" is="dom-bind">
+        <template is="dom-repeat" items="{{list}}" as="card" filter="_isDoctor" sort="_sort">
+          <div class="card layout horizontal justified">
+            <div class="layout horizontal center">
+            <iron-image class="thumbnail" src="{{card.image}}" sizing="cover" preload fade></iron-image>
+              <h2>{{card.name}}</h2>
+            </div>
+            <div class="align-right">
+              <h3>{{card.email}}</h3>
+              <h3>{{card.phone}}</h3>
+            </div>
+          </div>
+        </template>
+      </template>
+    </div>
+  </div>
+  <script>
+    var list = [];
+    for (var i = 0; i < 250; i++) {
+      var person = faker.helpers.createCard();
+      person.image = faker.image.avatar() + '?i=' + i;
+      list.push(person);
+    }
+
+    var el = document.querySelector('#demo');
+    
+    el.list = list;
+
+    el._isDoctor = function(person) {
+      if (!person) return false;
+      return person.name  && ~person.name.toLowerCase().indexOf(('Dr.').toLowerCase());
+    };
+
+    el._sort = function(a, b) {
+      var regex = /@(.*)/;
+      var a_provider = a.email.match(regex)[1];
+      var b_provider = b.email.match(regex)[1];
+      if (a_provider == b_provider) {
+        if (a.email.toLowerCase() === b.email.toLowerCase()) return 0;
+        return a.email.toLowerCase() < b.email.toLowerCase() ? -1 : 1;
+      }
+      return a_provider < b_provider ? -1 : 1;
+    };
+  </script>
+</body>
+</html>
